@@ -2,7 +2,7 @@ package main
 
 import (
 	"bagus-category-api/controller"
-	"encoding/json"
+	"bagus-category-api/controller/utils"
 	"fmt"
 	"net/http"
 	"strings"
@@ -38,11 +38,8 @@ func main() {
 	})
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		utils.WriteResponse(w, http.StatusOK, "Server is Running, please use the path /categories and /categories{id}", nil)
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
-			"status":  "OK",
-			"message": "Selamat Datang di API Category, silahkan gunakan path /categories dan /categories{id}, sesuaikan dengan Method masing-masingg",
-		})
 	})
 
 	err := http.ListenAndServe(":8080", nil)

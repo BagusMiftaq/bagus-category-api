@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"bagus-category-api/controller/utils"
 	"bagus-category-api/model"
 	"encoding/json"
 	"net/http"
@@ -8,55 +9,52 @@ import (
 )
 
 func GetCategory(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(model.ListCategory)
+	utils.WriteResponse(w, http.StatusOK, "Succes Get All Data", model.ListCategory)
 }
 
 func AddCategory(w http.ResponseWriter, r *http.Request) {
 	var categories model.Category
 	err := json.NewDecoder(r.Body).Decode(&categories)
 	if err != nil {
-		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		utils.WriteResponse(w, http.StatusBadRequest, "Invalid Request", nil)
 		return
 	}
 
 	categories.ID = len(model.ListCategory) + 1
 	model.ListCategory = append(model.ListCategory, categories)
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(categories)
+	utils.WriteResponse(w, http.StatusCreated, "Data Berhasil Ditambahkan", categories)
 }
 
 func GetCategoryById(w http.ResponseWriter, idStr string) {
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "Invalid Category ID", http.StatusBadRequest)
+		utils.WriteResponse(w, http.StatusBadRequest, "Invalid Category ID", nil)
 		return
 	}
 
 	for _, category := range model.ListCategory {
 		if category.ID == id {
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(category)
+			utils.WriteResponse(w, http.StatusOK, "Category successfully found", category)
 			return
 		}
 	}
-
-	http.Error(w, "Category Not Found", http.StatusNotFound)
+	utils.WriteResponse(w, http.StatusNotFound, "Category Not Found", nil)
 }
 
 func UpdateCategory(w http.ResponseWriter, r *http.Request, idStr string) {
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "Invalid Category ID", http.StatusBadRequest)
+		utils.WriteResponse(w, http.StatusBadRequest, "Invalid Category ID", nil)
 		return
 	}
 
 	var updateCategory model.Category
-	err = json.NewDecoder(r.Body).Decode(&updateCategory)
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&updateCategory)
 	if err != nil {
-		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		utils.WriteResponse(w, http.StatusBadRequest, "Invalid Request", nil)
 		return
 	}
 
@@ -64,37 +62,28 @@ func UpdateCategory(w http.ResponseWriter, r *http.Request, idStr string) {
 		if model.ListCategory[i].ID == id {
 			updateCategory.ID = id
 			model.ListCategory[i] = updateCategory
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(map[string]string{
-				"status":  "success",
-				"message": "Data berhasil diubah",
-			})
+			utils.WriteResponse(w, http.StatusOK, "Data successfully changed", nil)
 			return
 		}
 	}
 
-	http.Error(w, "Category Not Found", http.StatusNotFound)
+	utils.WriteResponse(w, http.StatusNotFound, "Category Not Found", nil)
 }
 
 func DeleteCategory(w http.ResponseWriter, idStr string) {
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "Invalid Category ID", http.StatusBadRequest)
+		utils.WriteResponse(w, http.StatusBadRequest, "Invalid Category ID", nil)
 		return
 	}
 
 	for i, p := range model.ListCategory {
 		if p.ID == id {
 			model.ListCategory = append(model.ListCategory[:i], model.ListCategory[i+1:]...)
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(map[string]string{
-				"status":  "success",
-				"message": "Data berhasil dihapus",
-			})
-
+			utils.WriteResponse(w, http.StatusOK, "Data deleted successfully", nil)
 			return
 		}
 	}
 
-	http.Error(w, "Category Not Found", http.StatusNotFound)
+	utils.WriteResponse(w, http.StatusNotFound, "Category Not Found", nil)
 }
